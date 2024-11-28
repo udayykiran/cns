@@ -1,0 +1,43 @@
+import java.math.BigInteger;
+import java.security.SecureRandom;
+
+public class Main {
+
+    public static void main(String[] args) {
+        // Prime modulus (p) and primitive root (g) - publicly known values
+        BigInteger p = new BigInteger("23"); 
+        BigInteger g = new BigInteger("5");  
+
+        System.out.println("Publicly Shared Prime (p): " + p);
+        System.out.println("Publicly Shared Base (g): " + g);
+
+        // Generate private keys for Alice and Bob
+        SecureRandom random = new SecureRandom();
+        BigInteger privateAlice = new BigInteger(p.bitLength() - 1, random);
+        BigInteger privateBob = new BigInteger(p.bitLength() - 1, random);
+
+        System.out.println("Alice's Private Key: " + privateAlice);
+        System.out.println("Bob's Private Key: " + privateBob);
+
+        // Calculate public keys
+        BigInteger publicAlice = g.modPow(privateAlice, p);
+        BigInteger publicBob = g.modPow(privateBob, p);
+
+        System.out.println("Alice's Public Key: " + publicAlice);
+        System.out.println("Bob's Public Key: " + publicBob);
+
+        // Exchange and calculate shared secret keys
+        BigInteger sharedKeyAlice = publicBob.modPow(privateAlice, p);
+        BigInteger sharedKeyBob = publicAlice.modPow(privateBob, p);
+
+        System.out.println("Alice's Computed Shared Key: " + sharedKeyAlice);
+        System.out.println("Bob's Computed Shared Key: " + sharedKeyBob);
+
+        // Verify if both shared keys are the same
+        if (sharedKeyAlice.equals(sharedKeyBob)) {
+            System.out.println("Shared Key Exchange Successful!");
+        } else {
+            System.out.println("Shared Key Exchange Failed.");
+        }
+    }
+}
