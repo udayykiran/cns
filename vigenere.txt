@@ -1,0 +1,64 @@
+import java.util.Scanner;
+
+public class Main {
+
+    // Method to encrypt plaintext using the Vigenère Cipher
+    public static String encrypt(String plaintext, String keyword) {
+        StringBuilder ciphertext = new StringBuilder();
+        for (int i = 0; i < plaintext.length(); i++) {
+            char p = plaintext.charAt(i);
+            char k = keyword.charAt(i);
+            if (Character.isLetter(p)) {
+                char encryptedChar = (char) ((p + k + 26) % 26 + 'A'); // Shift within alphabet
+                ciphertext.append(encryptedChar);
+            } else {
+                ciphertext.append(p); // Non-alphabetic characters remain unchanged
+            }
+        }
+        return ciphertext.toString();
+    }
+
+    // Method to decrypt ciphertext using the Vigenère Cipher
+    public static String decrypt(String ciphertext, String keyword) {
+        StringBuilder decryptedText = new StringBuilder();
+        for (int i = 0; i < ciphertext.length(); i++) {
+            char c = ciphertext.charAt(i);
+            char k = keyword.charAt(i);
+            if (Character.isLetter(c)) {
+                char decryptedChar = (char) ((c - k + 26) % 26 + 'A'); // Reverse the shift
+                decryptedText.append(decryptedChar);
+            } else {
+                decryptedText.append(c); // Non-alphabetic characters remain unchanged
+            }
+        }
+        return decryptedText.toString();
+    }
+
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+
+        // Input plaintext
+        System.out.print("Enter plaintext: ");
+        String plaintext = scanner.nextLine().toUpperCase();
+
+        // Input keyword
+        System.out.print("Enter keyword (must be the same length as plaintext): ");
+        String keyword = scanner.nextLine().toUpperCase();
+
+        // Check if the keyword length matches the plaintext length
+        if (keyword.length() != plaintext.length()) {
+            System.out.println("Error: Keyword must be the same length as plaintext.");
+            return;
+        }
+
+        // Encrypt the plaintext
+        String encryptedText = encrypt(plaintext, keyword);
+        System.out.println("Encrypted Text: " + encryptedText);
+
+        // Decrypt the ciphertext
+        String decryptedText = decrypt(encryptedText, keyword);
+        System.out.println("Decrypted Text: " + decryptedText);
+
+        scanner.close();
+    }
+}
