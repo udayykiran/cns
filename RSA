@@ -1,0 +1,71 @@
+import java.math.BigInteger;
+import java.nio.charset.StandardCharsets;
+
+public class Main {
+
+    public static int gcd(int a, int b) {
+        if (a == 0) return b;
+        return gcd(b%a, a);
+    }
+
+    public static void main(String[] args) {
+        // RSA parameters
+        int p = 61, q = 53; 
+        int n = p * q;
+        int z = (p - 1) * (q - 1);
+
+        // Choose e (public key exponent)
+        int e = 2;
+        while (e < z && gcd(e, z) != 1) {
+            e++;
+        }
+
+        // Calculate d (private key exponent)
+        int d = 0;
+        for (int i = 0; i <= 9; i++) {
+            int x = 1 + (i * z);
+            if (x % e == 0) {
+                d = x / e;
+                break;
+            }
+        }
+
+        System.out.println("Public Key (e, n): (" + e + ", " + n + ")");
+        System.out.println("Private Key (d, n): (" + d + ", " + n + ")");
+
+        // Message to encrypt
+        String message = "HELLO RSA";
+        System.out.println("Original Message: " + message);
+
+        // Encrypt and Decrypt in Chunks
+        String encryptedMessage = encryptMessage(message, e, n);
+        System.out.println("Encrypted Message: " + encryptedMessage);
+
+        String decryptedMessage = decryptMessage(encryptedMessage, d, n);
+        System.out.println("Decrypted Message: " + decryptedMessage);
+    }
+
+    // Encrypt the message in chunks
+    private static String encryptMessage(String message, int e, int n) {
+        StringBuilder encrypted = new StringBuilder();
+        byte[] messageBytes = message.getBytes(StandardCharsets.UTF_8);
+        for (byte b : messageBytes) {
+            BigInteger M = BigInteger.valueOf(b & 0xFF); // Convert to unsigned
+            BigInteger C = M.pow(e).mod(BigInteger.valueOf(n));
+            encrypted.append(C).append(" "); // Store each encrypted value
+        }
+        return encrypted.toString().trim();
+    }
+
+    // Decrypt the message in chunks
+    private static String decryptMessage(String encryptedMessage, int d, int n) {
+        StringBuilder decrypted = new StringBuilder();
+        String[] encryptedValues = encryptedMessage.split(" ");
+        for (String value : encryptedValues) {
+            BigInteger C = new BigInteger(value);
+            BigInteger M = C.pow(d).mod(BigInteger.valueOf(n));
+            decrypted.append((char) M.intValue());
+        }
+        return decrypted.toString();
+    }
+}
