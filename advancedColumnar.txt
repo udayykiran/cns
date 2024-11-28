@@ -1,0 +1,103 @@
+import java.util.Arrays;
+import java.util.Scanner;
+
+public class Main {
+
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+
+        System.out.print("Enter the message: ");
+        String message = scanner.nextLine().replaceAll("\\s+", "").toUpperCase();
+
+        System.out.print("Enter the key: ");
+        String key = scanner.nextLine().toUpperCase();
+
+        String cipherText = encrypt(message, key);
+        System.out.println("Advanced Columnar Transposition Cipher Text: " + cipherText);
+
+        String decryptedMessage = decrypt(cipherText, key);
+        System.out.println("Decrypted Message: " + decryptedMessage);
+
+        scanner.close();
+    }
+
+    // Method to encrypt the message using Advanced Columnar Transposition Cipher
+    public static String encrypt(String message, String key) {
+        int numColumns = key.length();
+        int numRows = (int) Math.ceil((double) message.length() / numColumns);
+
+        // Create a grid to store the message
+        char[][] grid = new char[numRows][numColumns];
+        int index = 0;
+
+        // Fill the grid with the message or 'X' if the message is shorter
+        for (int r = 0; r < numRows; r++) {
+            for (int c = 0; c < numColumns; c++) {
+                if (index < message.length()) {
+                    grid[r][c] = message.charAt(index++);
+                } else {
+                    grid[r][c] = 'X';  // Padding with 'X' if the grid is not full
+                }
+            }
+        }
+
+        // Sort the key to determine the order of the columns
+        Integer[] keyOrder = getKeyOrder(key);
+
+        // Read the columns in sorted key order to generate the cipher text
+        StringBuilder cipherText = new StringBuilder();
+        for (int i = 0; i < numColumns; i++) {
+            int col = keyOrder[i];
+            for (int r = 0; r < numRows; r++) {
+                cipherText.append(grid[r][col]);
+            }
+        }
+
+        return cipherText.toString();
+    }
+
+    // Method to decrypt the cipher text using Advanced Columnar Transposition Cipher
+    public static String decrypt(String cipherText, String key) {
+        int numColumns = key.length();
+        int numRows = (int) Math.ceil((double) cipherText.length() / numColumns);
+
+        // Create a grid to store the cipher text during decryption
+        char[][] grid = new char[numRows][numColumns];
+        int index = 0;
+
+        // Sort the key to get the order of the columns
+        Integer[] keyOrder = getKeyOrder(key);
+
+        // Fill the grid by reading columns in the sorted key order
+        for (int i = 0; i < numColumns; i++) {
+            int col = keyOrder[i];
+            for (int r = 0; r < numRows; r++) {
+                grid[r][col] = cipherText.charAt(index++);
+            }
+        }
+
+        // Reconstruct the message by reading the grid row by row
+        StringBuilder decryptedMessage = new StringBuilder();
+        for (int r = 0; r < numRows; r++) {
+            for (int c = 0; c < numColumns; c++) {
+                decryptedMessage.append(grid[r][c]);
+            }
+        }
+
+        // Remove padding 'X' if present
+        return decryptedMessage.toString().replaceAll("X+$", "");
+    }
+
+    // Method to get the order of columns based on the key
+    private static Integer[] getKeyOrder(String key) {
+        Integer[] keyOrder = new Integer[key.length()];
+        for (int i = 0; i < key.length(); i++) {
+            keyOrder[i] = i;
+        }
+
+        // Sort the indices of the key based on the alphabetical order of the characters
+        Arrays.sort(keyOrder, (a, b) -> key.charAt(a) - key.charAt(b));
+
+        return keyOrder;
+    }
+}
