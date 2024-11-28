@@ -1,0 +1,129 @@
+import java.util.Scanner;
+
+public class Main {
+
+    public static String encrypt(String plaintext, int[][] keyMatrix) {
+        plaintext = preprocessText(plaintext);
+        StringBuilder ciphertext = new StringBuilder();
+
+        for (int i = 0; i < plaintext.length(); i += 2) {
+            int x1 = plaintext.charAt(i) - 'A';
+            int x2 = plaintext.charAt(i + 1) - 'A';
+
+            int c1 = (keyMatrix[0][0] * x1 + keyMatrix[0][1] * x2) % 26;
+            int c2 = (keyMatrix[1][0] * x1 + keyMatrix[1][1] * x2) % 26;
+
+            ciphertext.append((char) (c1 + 'A'));
+            ciphertext.append((char) (c2 + 'A'));
+        }
+
+        return ciphertext.toString();
+    }
+
+    public static String decrypt(String ciphertext, int[][] keyMatrix) {
+        int determinant = calculateDeterminant(keyMatrix);
+        int gcd = gcd(determinant, 26);
+
+        if (gcd != 1) {
+            throw new IllegalArgumentException("Key matrix is invalid. Determinant is not coprime with 26.");
+        }
+
+        int inverseDeterminant = modularInverse(determinant, 26);
+        int[][] inverseMatrix = calculateInverseMatrix(keyMatrix, inverseDeterminant);
+
+        StringBuilder plaintext = new StringBuilder();
+
+        for (int i = 0; i < ciphertext.length(); i += 2) {
+            int c1 = ciphertext.charAt(i) - 'A';
+            int c2 = ciphertext.charAt(i + 1) - 'A';
+
+            int p1 = (inverseMatrix[0][0] * c1 + inverseMatrix[0][1] * c2) % 26;
+            int p2 = (inverseMatrix[1][0] * c1 + inverseMatrix[1][1] * c2) % 26;
+
+            if (p1 < 0) p1 += 26;
+            if (p2 < 0) p2 += 26;
+
+            plaintext.append((char) (p1 + 'A'));
+            plaintext.append((char) (p2 + 'A'));
+        }
+
+        return plaintext.toString();
+    }
+
+    private static String preprocessText(String text) {
+        text = text.toUpperCase().replaceAll("[^A-Z]", "");
+        if (text.length() % 2 != 0) {
+            text += "X";
+        }
+        return text;
+    }
+
+    private static int calculateDeterminant(int[][] matrix) {
+        return (matrix[0][0] * matrix[1][1] - matrix[0][1] * matrix[1][0]) % 26;
+    }
+
+    private static int modularInverse(int number, int mod) {
+        number = number % mod;
+        for (int x = 1; x < mod; x++) {
+            if ((number * x) % mod == 1) {
+                return x;
+            }
+        }
+        throw new ArithmeticException("Modular inverse does not exist");
+    }
+
+    private static int[][] calculateInverseMatrix(int[][] matrix, int inverseDeterminant) {
+        int[][] inverseMatrix = new int[2][2];
+
+        inverseMatrix[0][0] = matrix[1][1];
+        inverseMatrix[1][1] = matrix[0][0];
+        inverseMatrix[0][1] = -matrix[0][1];
+        inverseMatrix[1][0] = -matrix[1][0];
+
+        for (int i = 0; i < 2; i++) {
+            for (int j = 0; j < 2; j++) {
+                inverseMatrix[i][j] = (inverseMatrix[i][j] * inverseDeterminant) % 26;
+                if (inverseMatrix[i][j] < 0) {
+                    inverseMatrix[i][j] += 26;
+                }
+            }
+        }
+
+        return inverseMatrix;
+    }
+
+    private static int gcd(int a, int b) {
+        if (b == 0) return a;
+        return gcd(b, a % b);
+    }
+
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+
+        int[][] keyMatrix = new int[2][2];
+        System.out.println("Enter the 2x2 key matrix (values 0-25):");
+        // 2 3 3 5 
+        for (int i = 0; i < 2; i++) {
+            for (int j = 0; j < 2; j++) {
+                keyMatrix[i][j] = scanner.nextInt();
+            }
+        }
+
+        scanner.nextLine();
+        System.out.print("Enter plaintext: ");
+        // HELLO
+        String plaintext = scanner.nextLine();
+
+        try {
+            String ciphertext = encrypt(plaintext, keyMatrix);
+            System.out.println("Encrypted Text: " + ciphertext);
+
+            String decryptedText = decrypt(ciphertext, keyMatrix);
+            System.out.println("Decrypted Text: " + decryptedText);
+        } catch (Exception e) {
+            System.out.println("Error: " + e.getMessage());
+        }
+
+        scanner.close();
+    }
+}
