@@ -1,0 +1,98 @@
+import java.util.Scanner;
+
+public class Main {
+
+    // Method to encrypt using Rail Fence Cipher
+    public static String encrypt(String text, int key) {
+        char[][] rail = new char[key][text.length()];
+        boolean down = false;
+        int row = 0, col = 0;
+
+        // Fill the rail matrix with characters
+        for (int i = 0; i < text.length(); i++) {
+            if (row == 0 || row == key - 1) {
+                down = !down; // Change direction
+            }
+
+            rail[row][col++] = text.charAt(i);
+
+            row += down ? 1 : -1; // Move to next row
+        }
+
+        // Read characters in row-wise order for the ciphertext
+        StringBuilder cipherText = new StringBuilder();
+        for (int i = 0; i < key; i++) {
+            for (int j = 0; j < text.length(); j++) {
+                if (rail[i][j] != 0) {
+                    cipherText.append(rail[i][j]);
+                }
+            }
+        }
+
+        return cipherText.toString();
+    }
+
+    // Method to decrypt using Rail Fence Cipher
+    public static String decrypt(String cipherText, int key) {
+        char[][] rail = new char[key][cipherText.length()];
+        boolean down = false;
+        int row = 0, col = 0;
+
+        // Mark positions in the rail matrix
+        for (int i = 0; i < cipherText.length(); i++) {
+            if (row == 0 || row == key - 1) {
+                down = !down; // Change direction
+            }
+
+            rail[row][col++] = '*';
+
+            row += down ? 1 : -1; // Move to next row
+        }
+
+        // Fill the marked positions with characters from the ciphertext
+        int index = 0;
+        for (int i = 0; i < key; i++) {
+            for (int j = 0; j < cipherText.length(); j++) {
+                if (rail[i][j] == '*' && index < cipherText.length()) {
+                    rail[i][j] = cipherText.charAt(index++);
+                }
+            }
+        }
+
+        // Read the rail matrix in a zigzag manner to reconstruct the plaintext
+        StringBuilder plainText = new StringBuilder();
+        row = 0;
+        col = 0;
+        down = false;
+
+        for (int i = 0; i < cipherText.length(); i++) {
+            if (row == 0 || row == key - 1) {
+                down = !down; // Change direction
+            }
+
+            plainText.append(rail[row][col++]);
+
+            row += down ? 1 : -1; // Move to next row
+        }
+
+        return plainText.toString();
+    }
+
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+
+        System.out.print("Enter plaintext: ");
+        String plaintext = scanner.nextLine();
+
+        System.out.print("Enter key (number of rails): ");
+        int key = scanner.nextInt();
+
+        String encryptedText = encrypt(plaintext, key);
+        System.out.println("Encrypted Text: " + encryptedText);
+
+        String decryptedText = decrypt(encryptedText, key);
+        System.out.println("Decrypted Text: " + decryptedText);
+
+        scanner.close();
+    }
+}
